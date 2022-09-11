@@ -6,78 +6,62 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 
 class NewsTableViewController: UITableViewController {
+    
+    let disposeBag = DisposeBag()
+    
+    private var articleListVM: ArticleListViewmodel!
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         navigationController?.navigationBar.prefersLargeTitles = true
+        
+        popularNews()
+    }
+    
+    
+    private func popularNews() {
+        let url = URL(string: "https://newsapi.org/v2/top-headlines?country=us&apiKey=4292670cd6c2445bb6dc0a5bc12e5d38")!
+        let resource = Resource<ArticleResponse>(url: url)
+        
+        URLRequest.load(response: resource)
+            .subscribe(onNext: { response in
+                
+                let response = response.articles
+                self.articleListVM = ArticleListViewmodel(articles: response)
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+                
+            }).disposed(by: disposeBag)
+        
     }
 
     // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        return articleListVM == nil ? 0 : articleListVM.articleVM.count
     }
 
-    /*
+  
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+       guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ArticelTableViewCell else { fatalError("Not found") }
 
-        // Configure the cell...
+        let articleVM = self.articleListVM.articleAt(indexPath.row)
+        
+        articleVM.title.asDriver(onErrorJustReturn: "")
+            .drive(cell.titleLable.rx.text)
+            .disposed(by: disposeBag)
+        
+        articleVM.description.asDriver(onErrorJustReturn: "")
+            .drive(cell.descriptionLable.rx.text)
+            .disposed(by: disposeBag)
 
         return cell
     }
-    */
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }
