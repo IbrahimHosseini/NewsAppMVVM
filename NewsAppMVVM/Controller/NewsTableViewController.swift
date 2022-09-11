@@ -14,10 +14,10 @@ class NewsTableViewController: UITableViewController {
     let disposeBag = DisposeBag()
     
     private var articleListVM: ArticleListViewmodel!
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         navigationController?.navigationBar.prefersLargeTitles = true
         
         popularNews()
@@ -41,16 +41,16 @@ class NewsTableViewController: UITableViewController {
             }).disposed(by: disposeBag)
         
     }
-
+    
     // MARK: - Table view data source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return articleListVM == nil ? 0 : articleListVM.articleVM.count
     }
-
-  
+    
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-       guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ArticelTableViewCell else { fatalError("Not found") }
-
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? ArticelTableViewCell else { fatalError("Not found") }
+        
         let articleVM = self.articleListVM.articleAt(indexPath.row)
         
         articleVM.title.asDriver(onErrorJustReturn: "")
@@ -60,8 +60,8 @@ class NewsTableViewController: UITableViewController {
         articleVM.description.asDriver(onErrorJustReturn: "")
             .drive(cell.descriptionLable.rx.text)
             .disposed(by: disposeBag)
-
+        
         return cell
     }
-
+    
 }
